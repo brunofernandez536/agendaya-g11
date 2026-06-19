@@ -1,6 +1,6 @@
 import { validarPlantilla } from '../lib/plantillas';
 
-describe('Pruebas Unitarias - US_006: Validar Plantillas de Email', () => {
+describe('Pruebas Unitarias - US_005: Validar Plantillas de Email', () => {
 
   test('Debería aceptar una plantilla válida con [Fecha] y [Hora]', () => {
     const textoValido = "Hola, tu turno es el [Fecha] a las [Hora]. Te esperamos.";
