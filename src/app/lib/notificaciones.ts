@@ -28,3 +28,29 @@ export function enviarNotificacionCancelacion(reserva: Reserva): EmailResultado 
     cuerpo: `Hola! Tu reserva con ID ${reserva.id} ha sido cancelada.`
   };
 }
+
+export const enviarRecordatorioEmail = async (
+  email: string | null, 
+  reserva: { fecha: string; hora: string } | null, 
+  proveedorCorreos: any
+) => {
+  if (!email) {
+    throw new Error("El correo electrónico del usuario es obligatorio.");
+  }
+
+  if (!reserva || !reserva.fecha || !reserva.hora) {
+    throw new Error("Los detalles de la reserva son obligatorios.");
+  }
+
+  try {
+    const respuesta = await proveedorCorreos.send({
+      to: email,
+      subject: "Recordatorio de tu reserva - AgendaYA",
+      body: `Te recordamos que tienes una reserva el ${reserva.fecha} a las ${reserva.hora}.`
+    });
+
+    return { success: true, message: "Recordatorio enviado con éxito", data: respuesta };
+  } catch (error) {
+    throw new Error("Fallo en el servidor de correos. Se reintentará en segundo plano.");
+  }
+};

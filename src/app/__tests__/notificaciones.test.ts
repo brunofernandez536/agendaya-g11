@@ -1,5 +1,7 @@
 
 import { enviarNotificacionCancelacion, Reserva } from '../lib/notificaciones';
+import { enviarRecordatorioEmail } from '../lib/notificaciones';
+
 
 describe('US_007: Notificación vía E-mail por cancelación de reserva', () => {
   
@@ -40,5 +42,39 @@ describe('US_007: Notificación vía E-mail por cancelación de reserva', () => 
     };
 
     expect(() => enviarNotificacionCancelacion(reservaErronea)).toThrow("Email inválido");
+  });
+});
+
+describe('US_008 - Recordatorio de reserva vía E-mail', () => {
+  const mockProveedorExitoso = {
+    send: jest.fn().mockResolvedValue({ status: 'enviado' })
+  };
+  const mockProveedorFallo = {
+    send: jest.fn().mockRejectedValue(new Error('Timeout'))
+  };
+  const reservaValida = { fecha: '2026-06-25', hora: '14:30' };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Prueba 1 
+  it('Debe enviar el recordatorio exitosamente si los datos son correctos', async () => {
+    const result = await enviarRecordatorioEmail('invitado@agendaya.com', reservaValida, mockProveedorExitoso);
+    expect(mockProveedorExitoso.send).toHaveBeenCalledTimes(1);
+    expect(result.success).toBe(true);
+  });
+
+  // Prueba 2 
+  it('Debe arrojar un error si falta el correo electrónico', async () => {
+    await expect(enviarRecordatorioEmail(null, reservaValida, mockProveedorExitoso))
+      .rejects.toThrow('El correo electrónico del usuario es obligatorio.');
+    expect(mockProveedorExitoso.send).not.toHaveBeenCalled();
+  });
+
+  // Prueba 3: Simulacion de fallo del proveedor
+  it('Debe manejar fallos de infraestructura del proveedor de correos', async () => {
+    await expect(enviarRecordatorioEmail('invitado@agendaya.com', reservaValida, mockProveedorFallo))
+      .rejects.toThrow('Fallo en el servidor de correos. Se reintentará en segundo plano.');
   });
 });
